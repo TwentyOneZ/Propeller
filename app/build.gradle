@@ -1,0 +1,52 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace = 'br.ufg.labmicro.propellercontrol'
+    compileSdk = 31
+    buildToolsVersion = '30.0.3'
+
+    defaultConfig {
+        applicationId = 'br.ufg.labmicro.propellercontrol'
+        minSdk = 23
+        targetSdk = 31
+        versionCode = 1
+        versionName = '1.0'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+def protocolTestClasses = layout.buildDirectory.dir('protocol-test-classes')
+
+tasks.register('compileProtocolTest', JavaCompile) {
+    source = files(
+            'src/main/java/br/ufg/labmicro/propellercontrol/DisplayProtocol.java',
+            'src/testHarness/java/br/ufg/labmicro/propellercontrol/DisplayProtocolSelfTest.java')
+    classpath = files()
+    destinationDirectory = protocolTestClasses
+    options.release = 17
+}
+
+tasks.register('protocolTest', JavaExec) {
+    dependsOn 'compileProtocolTest'
+    classpath = files(protocolTestClasses)
+    mainClass = 'br.ufg.labmicro.propellercontrol.DisplayProtocolSelfTest'
+}
+
+afterEvaluate {
+    tasks.named('testDebugUnitTest').configure {
+        dependsOn 'protocolTest'
+    }
+}
